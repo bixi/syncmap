@@ -61,6 +61,27 @@ func Test_Get(t *testing.T) {
 	}
 }
 
+func Test_GetDefault(t *testing.T) {
+	m := New()
+	v1, ok := m.Get("not_exist_at_all")
+	if ok {
+		t.Error("ok should be false when key is missing")
+	}
+	if v1 != nil {
+		t.Error("value should be nil for missing key")
+	}
+
+	v2 := m.GetDefault("one", 1)
+	if 1 != v2.(int) {
+		t.Error("value should be an integer of value 1")
+	}
+
+	v3 := m.GetDefault("one", 2)
+	if 1 != v3.(int) {
+		t.Error("value should be an integer of value 1")
+	}
+}
+
 func Test_Has(t *testing.T) {
 	m := New()
 	if m.Has("missing_key") {

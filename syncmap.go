@@ -58,6 +58,24 @@ func (m *SyncMap) Get(key string) (value interface{}, ok bool) {
 	return
 }
 
+// Retrieves a default value
+func (m *SyncMap) GetDefault(key string, defaultValue interface{}) interface{} {
+	shard := m.locate(key)
+	shard.RLock()
+	value, ok := shard.items[key]
+	shard.RUnlock()
+	if !ok {
+		shard.Lock()
+		value, ok = shard.items[key]
+		if !ok {
+			shard.items[key] = defaultValue
+			value = defaultValue
+		}
+		shard.Unlock()
+	}
+	return value
+}
+
 // Sets value with the given key
 func (m *SyncMap) Set(key string, value interface{}) {
 	shard := m.locate(key)
