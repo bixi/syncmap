@@ -76,6 +76,26 @@ func (m *SyncMap) GetDefault(key string, defaultValue interface{}) interface{} {
 	return value
 }
 
+// Retrieves a default value created by provider.
+// NOTE: the value created by provider may not be used.
+func (m *SyncMap) GetLazyDefault(key string, provider func() interface{}) interface{} {
+	shard := m.locate(key)
+	shard.RLock()
+	value, ok := shard.items[key]
+	shard.RUnlock()
+	if !ok {
+		defaultValue := provider()
+		shard.Lock()
+		value, ok = shard.items[key]
+		if !ok {
+			shard.items[key] = defaultValue
+			value = defaultValue
+		}
+		shard.Unlock()
+	}
+	return value
+}
+
 // Sets value with the given key
 func (m *SyncMap) Set(key string, value interface{}) {
 	shard := m.locate(key)
